@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # prepare folders
-mkdir -p /config/log
 mkdir -p /config/lazylibrarian
+mkdir -p /config/lazylibrarian/log
 mkdir -p /config/calibre
 mkdir -p /config/calibre/tmp
 mkdir -p /config/cache/calibre/
