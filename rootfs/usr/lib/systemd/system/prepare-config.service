@@ -1,0 +1,11 @@
+[Unit]
+Description=Prepare Config Service
+After=network-online.target
+
+[Service]
+Type=notify
+KillMode=none
+ExecStart=/usr/bin/prepare-config.sh
+
+[Install]
+WantedBy=default.target

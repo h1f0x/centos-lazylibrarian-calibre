@@ -1,0 +1,137 @@
+#!/bin/bash
+#
+# Title:      PGBlitz (lazylibrarian-calibre)
+# Author(s):  h1f0x
+# URL:        https://pgblitz.com - http://github.pgblitz.com
+# GNU:        General Public License v3.0
+################################################################################
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    # FACTS #######################################################################
+    - name: 'Set Known Facts'
+      set_fact:
+        pgrole: 'lazylibrarian-calibre'
+        intport: '5299'
+        extport: '8243'
+        image: 'h1f0x/centos-lazylibrarian-calibre'
+
+    # CORE (MANDATORY) ############################################################
+    - name: 'Including cron job'
+      include_tasks: '/opt/coreapps/apps/_core.yml'
+
+    # LABELS ######################################################################
+    - name: 'Adding Traefik'
+      set_fact:
+        pg_labels:
+        pg_labels:
+          traefik.enable: 'true'
+          traefik.port: '{{intport}}'
+          traefik.frontend.auth.forward.address: '{{gauth}}'
+          traefik.frontend.rule: 'Host:{{pgrole}}.{{domain.stdout}}{{tldset}}{{cname}}'
+          traefik.frontend.headers.SSLHost: '{{domain.stdout}}'
+          traefik.frontend.headers.SSLRedirect: 'true'
+          traefik.frontend.headers.STSIncludeSubdomains: 'true'
+          traefik.frontend.headers.STSPreload: 'true'
+          traefik.frontend.headers.STSSeconds: '315360000'
+          traefik.frontend.headers.browserXSSFilter: 'true'
+          traefik.frontend.headers.contentTypeNosniff: 'true'
+          traefik.frontend.headers.customResponseHeaders: 'X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex'
+          traefik.frontend.headers.forceSTSHeader: 'true'
+
+
+    - name: 'Setting PG Volumes'
+      set_fact:
+        pg_volumes:
+          - '/opt/appdata/{{pgrole}}:/config'
+          - '/mnt/unionfs/calibre:/config/calibre'
+          - '/etc/localtime:/etc/localtime:ro'
+          - '/mnt:/mnt'
+          - '{{path.stdout}}:{{path.stdout}}'
+
+    - name: 'Setting PG ENV'
+      set_fact:
+        pg_env:
+          SET_CONTAINER_TIMEZONE: 'true'
+          PUID: '1000'
+          PGID: '1000'
+
+    # MAIN DEPLOYMENT #############################################################
+    - name: 'Deploying {{pgrole}}'
+      docker_container:
+        name: '{{pgrole}}'
+        image: '{{image}}'
+        pull: yes
+        published_ports:
+          - '{{ports.stdout}}{{extport}}:{{intport}}'
+        volumes: '{{pg_volumes}}'
+        env: '{{pg_env}}'
+        restart_policy: always
+        networks:
+          - name: plexguide
+            aliases:
+              - '{{pgrole}}'
+        privileged: yes
+        state: started
+        labels: '{{pg_labels}}'
+
+    # CONFIGURATION ####################################################
+
+    - name: 'Waiting for {{pgrole}} to initialize'
+      wait_for:
+        path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+        state: present
+        delay: 5
+
+    - name: 'Stopping {{pgrole}}'
+      docker_container:
+        name: '{{pgrole}}'
+        state: stopped
+
+    - name: Set eBooks library Location
+      ini_file:
+        path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+        section: General
+        option: ebook_dir
+        value: '{{path.stdout}}/unionfs/ebooks'
+        state: present
+
+    - name: Set Audio Books library Location
+      ini_file:
+        path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+        section: General
+        option: audio_dir
+        value: '{{path.stdout}}/unionfs/abooks'
+        state: present
+
+    - name: Set Magazine library Location
+        ini_file:
+          path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+          section: PostProcess
+          option: mag_dest_folder
+          value: '{{path.stdout}}/unionfs/magazines'
+          state: present
+
+    - name: Set Comic library Location
+        ini_file:
+          path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+          section: PostProcess
+          option: comic_dest_folder
+          value: '{{path.stdout}}/unionfs/comic'
+          state: present
+
+    - name: Set downloads location
+      ini_file:
+        path: '/opt/appdata/{{pgrole}}/config.ini'
+        section: General
+        option: download_dir
+        value: '{{path.stdout}}/unionfs/sabnzbd/ebooks,{{path.stdout}}/unionfs/nzbget/ebooks,{{path.stdout}}/unionfs/rutorrent/ebooks,{{path.stdout}}/unionfs/qbittorrent/ebooks'
+        state: present
+
+      when: not inicheck.stat.exists
+
+    - name: Restart {{pgrole}}
+      docker_container:
+        name: '{{pgrole}}'
+        state: started

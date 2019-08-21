@@ -1,0 +1,13 @@
+[Unit]
+Description=LazyLibrarian Service
+Documentation=https://gitlab.com/LazyLibrarian/LazyLibrarian
+After=prepare-config.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/python2.7 /opt/lazylibrarian/LazyLibrarian.py --datadir /config/lazylibrarian --nolaunch
+WorkingDirectory=/opt/lazylibrarian
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
