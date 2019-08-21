@@ -74,13 +74,6 @@ RUN (crontab -l 2>/dev/null; echo "* * * * * /usr/bin/verify-services.sh") | cro
 RUN systemctl enable prepare-config.service
 RUN systemctl enable lazylibrarian.service
 
-# Clean Up
-RUN yum groupremove -y "development tools"
-RUN yum remove -y zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel expat-devel
-
-# Install git
-RUN yum install -y git
-
 VOLUME /config /books /audiobooks /magazines /comics /downloads
 
 # End
