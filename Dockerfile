@@ -60,8 +60,8 @@ RUN wget -O- ${CALIBRE_INSTALLER_SOURCE_CODE_URL} | python2.7 -c "import sys; ma
 RUN git clone --depth 1 https://gitlab.com/LazyLibrarian/LazyLibrarian.git /opt/lazylibrarian
 
 # Upgrade pip and add apprise
-RUN pip install --upgrade pip
-RUN pip install apprise
+RUN pip2.7 install --upgrade pip
+RUN pip2.7 install apprise
 
 # add local files
 COPY rootfs/ /
