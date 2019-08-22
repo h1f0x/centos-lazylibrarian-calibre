@@ -11,3 +11,7 @@ mkdir -p /config/cache/calibre/
 if [ ! -f /config/lazylibrarian/config.ini ]; then
     cp -r /defaults/lazylibrarian/config.ini /config/lazylibrarian/config.ini
 fi
+
+if [ ! -f /books/metadata.db ]; then
+    cp -r /defaults/calibre/metadata.db /books/
+fi

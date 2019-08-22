@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Title:      PGBlitz (lazylibrarian-calibre)
+# Title:      PGBlitz (h1f0x-lazylibrarian-calibre)
 # Author(s):  h1f0x
 # URL:        https://pgblitz.com - http://github.pgblitz.com
 # GNU:        General Public License v3.0
@@ -12,7 +12,7 @@
     # FACTS #######################################################################
     - name: 'Set Known Facts'
       set_fact:
-        pgrole: 'lazylibrarian-calibre'
+        pgrole: 'h1f0x-lazylibrarian-calibre'
         intport: '5299'
         extport: '8243'
         image: 'h1f0x/centos-lazylibrarian-calibre'
