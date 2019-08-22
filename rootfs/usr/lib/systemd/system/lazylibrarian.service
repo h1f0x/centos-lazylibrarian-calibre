@@ -5,6 +5,7 @@ After=prepare-config.service
 
 [Service]
 Type=simple
+ExecStartPre=/bin/sleep 10
 ExecStart=/usr/local/bin/python2.7 /opt/lazylibrarian/LazyLibrarian.py --datadir /config/lazylibrarian --nolaunch
 WorkingDirectory=/opt/lazylibrarian
 Restart=on-failure

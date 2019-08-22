@@ -44,16 +44,14 @@
     - name: 'Setting PG Volumes'
       set_fact:
         pg_volumes:
-          - '/opt/appdata/{{pgrole}}:/config'
-          - '/mnt/unionfs/calibre:/config/calibre'
           - '/etc/localtime:/etc/localtime:ro'
-          - '/mnt:/mnt'
           - '{{path.stdout}}:{{path.stdout}}'
+          - '/mnt:/mnt'
+          - '/opt/appdata/{{pgrole}}:/config'
 
     - name: 'Setting PG ENV'
       set_fact:
         pg_env:
-          SET_CONTAINER_TIMEZONE: 'true'
           PUID: '1000'
           PGID: '1000'
 
@@ -67,7 +65,7 @@
           - '{{ports.stdout}}{{extport}}:{{intport}}'
         volumes: '{{pg_volumes}}'
         env: '{{pg_env}}'
-        restart_policy: always
+        restart_policy: unless-stopped
         networks:
           - name: plexguide
             aliases:
@@ -83,11 +81,6 @@
         path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
         state: present
         delay: 5
-
-    - name: 'Stopping {{pgrole}}'
-      docker_container:
-        name: '{{pgrole}}'
-        state: stopped
 
     - name: Set eBooks library Location
       ini_file:
@@ -106,32 +99,25 @@
         state: present
 
     - name: Set Magazine library Location
-        ini_file:
-          path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
-          section: PostProcess
-          option: mag_dest_folder
-          value: '{{path.stdout}}/unionfs/magazines'
-          state: present
+      ini_file:
+        path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+        section: PostProcess
+        option: mag_dest_folder
+        value: '{{path.stdout}}/unionfs/magazines'
+        state: present
 
     - name: Set Comic library Location
-        ini_file:
-          path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
-          section: PostProcess
-          option: comic_dest_folder
-          value: '{{path.stdout}}/unionfs/comic'
-          state: present
+      ini_file:
+        path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
+        section: PostProcess
+        option: comic_dest_folder
+        value: '{{path.stdout}}/unionfs/comic'
+        state: present
 
     - name: Set downloads location
       ini_file:
-        path: '/opt/appdata/{{pgrole}}/config.ini'
+        path: '/opt/appdata/{{pgrole}}/lazylibrarian/config.ini'
         section: General
         option: download_dir
         value: '{{path.stdout}}/unionfs/sabnzbd/ebooks,{{path.stdout}}/unionfs/nzbget/ebooks,{{path.stdout}}/unionfs/rutorrent/ebooks,{{path.stdout}}/unionfs/qbittorrent/ebooks'
         state: present
-
-      when: not inicheck.stat.exists
-
-    - name: Restart {{pgrole}}
-      docker_container:
-        name: '{{pgrole}}'
-        state: started
