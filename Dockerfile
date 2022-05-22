@@ -1,4 +1,4 @@
-FROM amd64/centos:latest
+FROM amd64/centos:7
 MAINTAINER h1f0x
 
 # Enabled systemd
